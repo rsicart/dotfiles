@@ -1,0 +1,23 @@
+[user]
+	name = R.Sicart
+	email = roger.sicart@gmail.com
+
+[color]
+    diff = auto
+    status = auto
+    branch = auto
+    log = auto
+    interactive = auto
+    pager = true
+
+[core]
+    pager = less -RFXS -x4
+	editor = vim
+
+[alias]
+    graph = log --graph --oneline --decorate
+	st = status
+	ci = commit
+	di = diff
+[merge]
+	ff = false
