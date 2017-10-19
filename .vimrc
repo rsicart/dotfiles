@@ -1,14 +1,14 @@
 execute pathogen#infect()
-set number                      " line numbers
+set relativenumber              " line numbers
 syntax on                       " highlight syntax
 colorscheme pablo
 filetype plugin indent on
-set nosmartindent				" smart autoindenting when starting a new line
-set noautoindent				" copy indent from current line when starting new line
+set nosmartindent		" smart autoindenting when starting a new line
+set noautoindent		" copy indent from current line when starting new line
 set tabstop=4                   " number of visual spaces per TAB
 set softtabstop=4               " number of spaces in tab when editing
 set shiftwidth=4
-set expandtab                   " tabs are spaces
+set noexpandtab			" tabs are spaces
 set mouse=a
 set t_Co=256
 set background=dark
