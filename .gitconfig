@@ -1,6 +1,6 @@
 [user]
-	name = R.Sicart
-	email = roger.sicart@gmail.com
+    name = R.Sicart
+    email = roger.sicart@gmail.com
 
 [color]
     diff = auto
@@ -12,12 +12,12 @@
 
 [core]
     pager = less -RFXS -x4
-	editor = vim
+    editor = vim
 
 [alias]
     graph = log --graph --oneline --decorate
-	st = status
-	ci = commit
-	di = diff
+    st = status
+    ci = commit
+    di = diff
 [merge]
-	ff = false
+    ff = false
