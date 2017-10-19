@@ -15,9 +15,9 @@
     editor = vim
 
 [alias]
-    graph = log --graph --oneline --decorate
+    graph = log --graph --oneline --decorate --color
+    grall = log --graph --oneline --decorate --color --all
     st = status
+    co = checkout
     ci = commit
-    di = diff
-[merge]
-    ff = false
+    ru = remote update
