@@ -1,61 +1,63 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Set path if required
+export PATH=$HOME/bin:/usr/local/go/bin:/usr/local/bin:$PATH
 
-# Path to your oh-my-zsh installation.
-  export ZSH=/home/rsicart/.oh-my-zsh
+# dircolors --print-database > dircolors.default
+d=dircolors.default
+test -r $d && eval "$(dircolors $d)"
 
-# Set name of the theme to load. Optionally, if you set this to "random"
-# it'll load a random theme each time that oh-my-zsh is loaded.
-# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-#ZSH_THEME="robbyrussell"
-ZSH_THEME="afowler"
+# Aliases
+alias ls='ls --color=auto'
+alias ll='ls -lah --color=auto'
+alias grep='grep --color=auto'
+alias bashly='docker run --rm -it --user $(id -u):$(id -g) --volume "$PWD:/app" dannyben/bashly'
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+## Set up the prompt - if you load Theme with zplugin as in this example, this will be overriden by the Theme. If you comment out the Theme in zplugins, this will be loaded.
+autoload -Uz promptinit
+promptinit
+# see Zsh Prompt Theme below
+# prompt -l to see available prompts
+#prompt bart
 
-# Uncomment the following line to use hyphen-insensitive completion. Case
-# sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+# Use vi keybindings even if our EDITOR is set to vi
+bindkey -e
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
+setopt histignorealldups sharehistory
+setopt PROMPT_SUBST
 
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
+# Keep 5000 lines of history within the shell and save it to ~/.zsh_history:
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=~/.zsh_history
 # The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
+HIST_STAMPS="%Y-%m-%d %T"
+
+# Use modern completion system
+autoload -Uz compinit
+compinit
+
+## zplug - manage plugins
+#source /usr/share/zplug/init.zsh
+#zplug "plugins/git", from:oh-my-zsh
+##zplug "plugins/sudo", from:oh-my-zsh
+##zplug "plugins/command-not-found", from:oh-my-zsh
+##zplug "zsh-users/zsh-syntax-highlighting"
+##zplug "zsh-users/zsh-autosuggestions"
+##zplug "zsh-users/zsh-history-substring-search"
+##zplug "zsh-users/zsh-completions"
+##zplug "junegunn/fzf"
+#zplug "themes/robbyrussell", from:oh-my-zsh, as:theme   # Theme
+#
+## zplug - install/load new plugins when zsh is started or reloaded
+#if ! zplug check --verbose; then
+#    printf "Install? [y/N]: "
+#    if read -q; then
+#        echo; zplug install
+#    fi
+#fi
+#zplug load --verbose
 
 # Would you like to use another custom folder than $ZSH/custom?
 # ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-
-source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
@@ -64,67 +66,82 @@ bindkey -v
 export KEYTIMEOUT=1
 bindkey '^r' history-incremental-search-backward
 
-# gcloud zsh autocompletion
-source /usr/lib/google-cloud-sdk/completion.zsh.inc
-
 # ssh hostname completion
-_hosts() { compadd $(cat ~/.ssh/config ~/.ssh/client_config | grep -i hostname | awk '{print $2}') }
+_hosts() {
+    compadd $(cat ~/.ssh/config ~/.ssh/client_config | grep -i hostname | awk '{print $2}')
+}
+
+git_current_branch() {
+    git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    if [[ -z "$git_branch" ]]; then
+        echo ""
+    else
+        echo "git:$git_branch"
+    fi
+}
 
 #
 # Kubernetes
 #
 
+if [ $commands[kubectl] ]; then
+    source <(kubectl completion zsh)
+fi
+
 # k8s context
 get_k8s_current_context() {
     context=$(kubectl config current-context)
-    echo "k8s:$context "
+    if [[ -z "$context" ]]; then
+	echo ""
+    else
+        echo "k8s:$context"
+    fi
 }
 
-# enable k8s context in prompt by default?
-ENABLE_K8S_CONTEXT_IN_PROMPT=1
-
-# activate k8s context in prompt
-k8s_prompt_enable() {
-    PROMPT='%m %{${fg_bold[red]}%}$(get_k8s_current_context)%{$reset_color%} %{${fg_bold[blue]}%}:: %{$reset_color%}%{${fg[green]}%}%3~ $(git_prompt_info)%{${fg_bold[$CARETCOLOR]}%}»%{${reset_color}%} '
+show_virtual_env() {
+  if [[ -n "$VIRTUAL_ENV" && -n "$DIRENV_DIR" ]]; then
+    echo "($(basename $VIRTUAL_ENV)) "
+  fi
 }
+#PS1='$(show_virtual_env)'$PS1
 
-# restore prompt to afowler's theme prompt
-k8s_prompt_disable() {
-    PROMPT='%m %{${fg_bold[blue]}%}:: %{$reset_color%}%{${fg[green]}%}%3~ $(git_prompt_info)%{${fg_bold[$CARETCOLOR]}%}»%{${reset_color}%} '
-}
-
-if [ $ENABLE_K8S_CONTEXT_IN_PROMPT -gt 0 ]; then
-    k8s_prompt_enable
-else
-    k8s_prompt_disable
-fi
-
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/rsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
 #
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# prompt configuration
+# https://zsh.sourceforge.io/Doc/Release/Prompt-Expansion.html
+PROMPT='%F{yellow}$(show_virtual_env)%F{default}%~ %F{red}$(get_k8s_current_context)%F{blue}:: %F{green}~ $(git_current_branch)%f » '
 
-source ./scripts/kube_session.sh
+# bug gnome-control-center
+alias gnome-reset-cc="gsettings reset org.gnome.ControlCenter last-panel"
+
+function terraform-resource-references {
+    IFS=$'\n';
+    for LINE in $(grep -r '^resource "' | sort -u); do
+	RESOURCE=$(echo $LINE | awk '{print $2 "." $3}' | sed -e 's/"//g');
+	grep -cr "$RESOURCE" | awk -v resource_name="$RESOURCE" -F':' 'BEGIN{total=0}{total=total+$2}END{print resource_name ":" total}';
+    done
+}
+
+function kube-session {
+    KUBECONFIG_TMP_PATH="$HOME/.kube/tmp"
+    mkdir -p $KUBECONFIG_TMP_PATH
+    chmod 700 $KUBECONFIG_TMP_PATH
+    # create kubeconfig file for session
+    KUBECONFIG_FILENAME=$KUBECONFIG_TMP_PATH/config.$(date +%s-%N)
+    cp $HOME/.kube/config $KUBECONFIG_FILENAME
+    export KUBECONFIG=$KUBECONFIG_FILENAME
+    echo "kubeconfig file configured to '${KUBECONFIG_FILENAME}'!"
+    chmod 600 $KUBECONFIG_TMP_PATH/*
+    # clean tmp folder
+    find $KUBECONFIG_TMP_PATH -type f -mtime +90 -name "config.*" -delete
+}
+
+function curltor {
+    ss -lpten "( sport = :9150 )" | grep "tor" >/dev/null && curl --socks5 127.0.0.1:9150 "$@" || echo "tor is not running"
+}
+
+export SSH_AUTH_SOCK=$HOME/.ssh/ssh-auth-sock
+
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+
+# hook direnv into my shell
+eval "$(direnv hook zsh)"
